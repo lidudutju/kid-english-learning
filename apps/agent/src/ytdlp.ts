@@ -90,22 +90,6 @@ export async function download(
     "--write-thumbnail",
     "--convert-thumbnails",
     "jpg",
-    /*
-     * Captions, in the same pass as the video.
-     *
-     * A second yt-dlp invocation would mean a second round of YouTube's rate limiting and a
-     * second chance to fail after the bytes are already on disk. English only — the Learner is
-     * learning English, and a Spanish auto-caption track would be counted as Focus Words.
-     * `--write-auto-subs` is what actually gets used most of the time: songs for children very
-     * often have no author-written captions at all. If none of this works, yt-dlp warns and
-     * carries on, which is the right outcome — a Video with no Transcript still plays.
-     */
-    "--write-subs",
-    "--write-auto-subs",
-    "--sub-langs",
-    "en.*",
-    "--convert-subs",
-    "vtt",
     "--progress-template",
     "KELPROG|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s",
     "-o",
@@ -136,7 +120,64 @@ export async function download(
     throw new Error(detail);
   });
 
+  await fetchCaptions(config, url, outputDir, signal);
+
   return readOutputs(outputDir);
+}
+
+/**
+ * The English caption tracks, if this video has any, in a pass of their own.
+ *
+ * These flags used to ride along with the video download, and that was a real bug: a caption
+ * fetch that failed took the whole job with it, throwing away a video that had already finished
+ * downloading. `nFxAiWkSePk` is what proved it — `ERROR: Unable to download video subtitles for
+ * 'en-hi': HTTP Error 429: Too Many Requests` and the ingest was over. Captions are a
+ * nice-to-have, exactly like the thumbnail, so the whole invocation is wrapped and forgotten:
+ * a Video with no Transcript still plays.
+ *
+ * The lang list is spelled out rather than globbed for the same reason. `en.*` reads like
+ * "English", but YouTube publishes an auto-translation into English from every language it can
+ * hear, named `en-hi`, `en-pt`, `en-vi` — and `en-en`, English translated into English. On that
+ * video the glob matched seven tracks, so every ingest opened seven caption requests to fetch
+ * the two worth having, which is how the rate limit got tripped in the first place. These four
+ * are exactly the ones readTranscript() knows how to score, and no other language is asked for
+ * at all: the Learner is learning English, and a Spanish track would be counted as Focus Words.
+ */
+async function fetchCaptions(
+  config: Config,
+  url: string,
+  outputDir: string,
+  signal: AbortSignal,
+): Promise<void> {
+  const args = [
+    "--no-playlist",
+    "--no-color",
+    "--no-progress",
+    "--skip-download",
+    // Author-written captions when they exist; auto-generated otherwise, which for songs for
+    // children is most of the time.
+    "--write-subs",
+    "--write-auto-subs",
+    "--sub-langs",
+    "en,en-orig,en-US,en-GB",
+    "--convert-subs",
+    "vtt",
+    "-o",
+    join(outputDir, "source.%(ext)s"),
+    url,
+  ];
+
+  if (config.cookiesFile) args.push("--cookies", config.cookiesFile);
+
+  try {
+    await run(config.ytDlp, args, { signal });
+  } catch (err) {
+    // One exception to swallowing: a cancelled job must stay cancelled, or the pipeline carries
+    // on transcoding and uploading something nobody is waiting for any more.
+    if (signal.aborted) throw err;
+    // Otherwise deliberately silent about the cause. Nothing downstream can act on it, and the
+    // person waiting is told what they need to know by the Transcript panel not appearing.
+  }
 }
 
 /**
@@ -190,8 +231,9 @@ async function readOutputs(outputDir: string): Promise<DownloadResult> {
 /**
  * Pick one caption track and parse it.
  *
- * yt-dlp is asked for every English variant and will happily write four files; only one Transcript
- * is stored, so the choice is made here rather than left to whichever filename sorts first.
+ * Four English variants are asked for and yt-dlp writes however many exist — usually two; only one
+ * Transcript is stored, so the choice is made here rather than left to whichever filename sorts
+ * first.
  */
 async function readTranscript(
   outputDir: string,

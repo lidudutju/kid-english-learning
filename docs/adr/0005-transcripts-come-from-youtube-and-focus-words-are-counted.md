@@ -1,10 +1,10 @@
 # Transcripts come from YouTube, and Focus Words are counted rather than inferred
 
-A Transcript is whatever caption track yt-dlp can pull in the same pass that fetches the video —
-YouTube's own if the channel wrote one, its auto-generated one otherwise, and nothing at all for a
-file uploaded from the phone. The Focus Words are then counted from that text by a pure function in
-`packages/shared`, in the Agent, before the Video is ever registered. Two decisions, both of which
-had a more impressive-sounding alternative.
+A Transcript is whatever caption track yt-dlp can pull for a video — YouTube's own if the channel
+wrote one, its auto-generated one otherwise, and nothing at all for a file uploaded from the phone.
+The Focus Words are then counted from that text by a pure function in `packages/shared`, in the
+Agent, before the Video is ever registered. Two decisions, both of which had a more
+impressive-sounding alternative.
 
 **No speech recognition for uploads.** Whisper on the Mac was the obvious move: the Agent is
 already a machine at home with ffmpeg on it, and every other gap in this app gets filled there. It
@@ -50,6 +50,13 @@ are still in flight.
 - The size caps (1500 cues, 300 chars per cue) are enforced by the parser, not only by the Zod
   schema, so anything the Agent can produce is by construction something the Worker will accept.
   Otherwise a twenty-minute encode could be rejected at the finish line over a caption file.
+- Captions are fetched by a **separate** yt-dlp invocation whose failure is swallowed, and the
+  first version of this got it wrong: the flags rode along with the video download to save a round
+  trip, so `HTTP Error 429` on one caption file ended a job whose video had already downloaded. A
+  nice-to-have must not be able to fail the thing it is attached to. The requested langs are listed
+  literally (`en,en-orig,en-US,en-GB`) rather than globbed as `en.*` for the same reason: the glob
+  also matches YouTube's auto-translations *into* English (`en-hi`, `en-pt`, `en-en`), which are
+  seven requests to get the two worth having, and tripping the rate limit was the direct result.
 - Because the Agent computes and the Worker trusts, an Agent left un-updated on some other machine
   could write Focus Words from an older algorithm. Nothing would break and nothing would warn.
   `pnpm check:focus` is what makes that visible: it is the same pinned definition both sides claim
