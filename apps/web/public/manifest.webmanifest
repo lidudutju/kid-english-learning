@@ -1,6 +1,6 @@
 {
-  "name": "英语视频库",
-  "short_name": "英语视频",
+  "name": "小猫爱学习",
+  "short_name": "小猫爱学习",
   "description": "家庭英语学习视频库",
   "start_url": "/",
   "display": "standalone",

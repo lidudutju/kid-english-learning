@@ -41,7 +41,7 @@ export function Library({ library }: { library: LibraryState }) {
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 pt-4">
       <header className="mb-3 flex items-baseline justify-between">
-        <h1 className="text-lg font-medium tracking-tight text-ink">英语视频库</h1>
+        <h1 className="text-lg font-medium tracking-tight text-ink">小猫爱学习</h1>
         <span className="text-xs text-stone">
           {data ? `${data.videos.length} 个视频` : ""}
         </span>

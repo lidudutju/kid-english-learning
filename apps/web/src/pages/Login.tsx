@@ -24,7 +24,7 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
       <form onSubmit={submit} className="w-full max-w-sm space-y-4">
         <h1 className="text-2xl font-medium tracking-tight text-ink">
           <span className="mr-2 inline-block h-3.5 w-3.5 rounded-sm bg-brand-yellow" />
-          英语视频库
+          小猫爱学习
         </h1>
         <input
           type="password"
