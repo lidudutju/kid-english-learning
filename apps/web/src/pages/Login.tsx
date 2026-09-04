@@ -22,7 +22,10 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-semibold">英语视频库</h1>
+        <h1 className="text-2xl font-medium tracking-tight text-ink">
+          <span className="mr-2 inline-block h-3.5 w-3.5 rounded-sm bg-brand-yellow" />
+          英语视频库
+        </h1>
         <input
           type="password"
           value={password}
@@ -32,13 +35,13 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
           // Lets iOS offer the saved password instead of making you type 20 characters.
           name="password"
           autoFocus
-          className="min-h-tap w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-sky-500"
+          className="min-h-tap w-full rounded-lg border border-hairline-strong bg-canvas px-4 py-3 text-ink outline-none focus:border-brand-blue"
         />
-        {error && <p className="text-sm text-rose-400">{error}</p>}
+        {error && <p className="text-sm text-coral-dark">{error}</p>}
         <button
           type="submit"
           disabled={busy || !password}
-          className="min-h-tap w-full rounded-xl bg-sky-600 px-4 py-3 font-medium disabled:opacity-40"
+          className="min-h-tap w-full rounded-full bg-ink px-4 py-3 text-sm font-medium text-white active:bg-charcoal disabled:bg-hairline disabled:text-mist"
         >
           {busy ? "登录中…" : "登录"}
         </button>

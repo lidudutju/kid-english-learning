@@ -28,9 +28,9 @@ export function VideoRow({ video, progress, today, from }: Props) {
       <Link
         to={`/v/${video.id}`}
         state={from}
-        className="flex items-center gap-3 rounded-xl p-2 active:bg-slate-900"
+        className="flex items-center gap-3 rounded-xl p-2 active:bg-surface"
       >
-        <div className="relative h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-slate-800">
+        <div className="relative h-16 w-28 shrink-0 overflow-hidden rounded-lg border border-hairline-soft bg-surface">
           {video.thumbUrl && (
             <img
               src={video.thumbUrl}
@@ -40,22 +40,22 @@ export function VideoRow({ video, progress, today, from }: Props) {
               className="h-full w-full object-cover"
             />
           )}
-          <span className="absolute bottom-1 right-1 rounded bg-black/75 px-1 text-[10px] tabular-nums">
+          <span className="absolute bottom-1 right-1 rounded bg-black/75 px-1 text-[10px] tabular-nums text-white">
             {formatDuration(video.durationSeconds)}
           </span>
           {due && (
             <span
-              className="absolute left-1 top-1 h-2 w-2 rounded-full bg-amber-400"
+              className="absolute left-1 top-1 h-2.5 w-2.5 rounded-full bg-brand-yellow-deep ring-2 ring-white"
               aria-label="该复习了"
             />
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-sm font-medium leading-snug">{video.title}</p>
-          <p className="mt-1 truncate text-xs text-slate-500">
+          <p className="line-clamp-2 text-sm font-medium leading-snug text-ink">{video.title}</p>
+          <p className="mt-1 truncate text-xs text-stone">
             {touched ? (
               <>
-                <span className={due ? "text-amber-400" : ""}>
+                <span className={due ? "font-semibold text-yellow-dark" : ""}>
                   {STAGE_LABEL[progress.stage]}
                 </span>
                 {progress.watchCount > 0 && ` · 看过 ${progress.watchCount} 次`}

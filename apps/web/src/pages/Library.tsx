@@ -36,8 +36,8 @@ export function Library({ library }: { library: LibraryState }) {
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 pt-4">
       <header className="mb-3 flex items-baseline justify-between">
-        <h1 className="text-lg font-semibold">英语视频库</h1>
-        <span className="text-xs text-slate-500">
+        <h1 className="text-lg font-medium tracking-tight text-ink">英语视频库</h1>
+        <span className="text-xs text-stone">
           {data ? `${data.videos.length} 个视频` : ""}
         </span>
       </header>
@@ -45,16 +45,17 @@ export function Library({ library }: { library: LibraryState }) {
       {/*
         The way in. Due count on the button rather than a separate badge somewhere: this is the
         screen that opens by default, so if there is revision waiting it has to be visible here
-        without reading anything.
+        without reading anything. The brand-yellow card is the one place a big yellow surface is
+        allowed — it is the daily front door, not a CTA.
       */}
       <Link
         to="/today"
-        className="min-h-tap mb-3 flex items-center justify-between rounded-xl bg-slate-900 px-4 py-3 active:bg-slate-800"
+        className="min-h-tap mb-3 flex items-center justify-between rounded-2xl bg-brand-yellow px-5 py-4 text-ink active:bg-brand-yellow-deep"
       >
         <span className="text-sm font-medium">今天要看</span>
         <span
           className={`text-xs tabular-nums ${
-            learning.dueCount > 0 ? "font-semibold text-amber-400" : "text-slate-500"
+            learning.dueCount > 0 ? "font-semibold text-ink" : "text-ink/50"
           }`}
         >
           {learning.dueCount > 0 ? `${learning.dueCount} 个该复习` : "没有要复习的"}
@@ -68,7 +69,7 @@ export function Library({ library }: { library: LibraryState }) {
         type="search"
         autoCapitalize="off"
         autoCorrect="off"
-        className="min-h-tap w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 outline-none focus:border-sky-500"
+        className="min-h-tap w-full rounded-lg border border-hairline bg-surface px-4 py-3 text-ink outline-none focus:border-brand-blue"
       />
 
       <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
@@ -77,7 +78,7 @@ export function Library({ library }: { library: LibraryState }) {
           onChange={(e) =>
             setFilters({ ...filters, learning: e.target.value as Filters["learning"] })
           }
-          className="min-h-tap shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-3"
+          className="min-h-tap shrink-0 rounded-full border border-hairline-strong bg-canvas px-4 text-sm font-medium text-ink"
         >
           {LEARNING_VIEWS.map((v) => (
             <option key={v} value={v}>
@@ -90,7 +91,7 @@ export function Library({ library }: { library: LibraryState }) {
           onChange={(e) =>
             setFilters({ ...filters, duration: e.target.value as Filters["duration"] })
           }
-          className="min-h-tap shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-3"
+          className="min-h-tap shrink-0 rounded-full border border-hairline-strong bg-canvas px-4 text-sm font-medium text-ink"
         >
           {DURATION_BUCKETS.map((b) => (
             <option key={b} value={b}>
@@ -101,7 +102,7 @@ export function Library({ library }: { library: LibraryState }) {
         <select
           value={filters.sort}
           onChange={(e) => setFilters({ ...filters, sort: e.target.value as Filters["sort"] })}
-          className="min-h-tap shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-3"
+          className="min-h-tap shrink-0 rounded-full border border-hairline-strong bg-canvas px-4 text-sm font-medium text-ink"
         >
           {SORT_KEYS.map((k) => (
             <option key={k} value={k}>
@@ -121,10 +122,10 @@ export function Library({ library }: { library: LibraryState }) {
         </section>
       )}
 
-      {error && <p className="mt-4 text-sm text-rose-400">{error}</p>}
+      {error && <p className="mt-4 text-sm text-coral-dark">{error}</p>}
 
       {loading && !data ? (
-        <p className="mt-8 text-center text-sm text-slate-500">加载中…</p>
+        <p className="mt-8 text-center text-sm text-stone">加载中…</p>
       ) : results.length === 0 ? (
         <EmptyState hasVideos={(data?.videos.length ?? 0) > 0} />
       ) : (
@@ -142,7 +143,7 @@ export function Library({ library }: { library: LibraryState }) {
 
       <Link
         to="/add"
-        className="fixed bottom-6 right-5 flex h-14 w-14 items-center justify-center rounded-full bg-sky-600 text-3xl leading-none shadow-lg"
+        className="fixed bottom-6 right-5 flex h-14 w-14 items-center justify-center rounded-full bg-ink text-3xl leading-none text-white shadow-[rgba(5,0,56,0.12)_0px_16px_48px_-8px] active:bg-charcoal"
         style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
         aria-label="添加视频"
       >
@@ -154,13 +155,13 @@ export function Library({ library }: { library: LibraryState }) {
 
 function EmptyState({ hasVideos }: { hasVideos: boolean }) {
   return (
-    <div className="mt-16 text-center text-sm text-slate-500">
+    <div className="mt-16 text-center text-sm text-stone">
       {hasVideos ? (
         <p>没有匹配的视频</p>
       ) : (
         <>
           <p>库还是空的。</p>
-          <Link to="/add" className="mt-2 inline-block text-sky-400">
+          <Link to="/add" className="mt-2 inline-block font-medium text-brand-blue">
             粘一个 YouTube 链接试试
           </Link>
         </>

@@ -65,7 +65,7 @@ export function ProgressPanel({
   return (
     <section className="mt-6 space-y-5">
       <div>
-        <h2 className="mb-2 text-xs font-medium text-slate-400">学到哪了</h2>
+        <h2 className="mb-2 text-xs font-medium text-faint">学到哪了</h2>
         <div className="flex flex-wrap gap-2">
           {STAGES.map((s) => (
             <button
@@ -74,21 +74,21 @@ export function ProgressPanel({
               disabled={saving !== null}
               aria-pressed={progress.stage === s}
               title={STAGE_HINT[s]}
-              className={`min-h-tap rounded-full px-3.5 text-sm disabled:opacity-60 ${
+              className={`min-h-tap rounded-full border px-3.5 text-sm disabled:opacity-60 ${
                 progress.stage === s
-                  ? "bg-sky-600 font-medium text-white"
-                  : "bg-slate-800 text-slate-300"
+                  ? "border-ink bg-ink font-medium text-white"
+                  : "border-hairline bg-canvas text-subtle active:bg-surface"
               }`}
             >
               {STAGE_LABEL[s]}
             </button>
           ))}
         </div>
-        <p className="mt-2 text-xs text-slate-500">{STAGE_HINT[progress.stage]}</p>
+        <p className="mt-2 text-xs text-stone">{STAGE_HINT[progress.stage]}</p>
       </div>
 
       <div>
-        <h2 className="mb-2 text-xs font-medium text-slate-400">他喜欢吗</h2>
+        <h2 className="mb-2 text-xs font-medium text-faint">他喜欢吗</h2>
         <div className="flex flex-wrap gap-2">
           {AFFINITIES.map((a) => (
             <button
@@ -96,12 +96,12 @@ export function ProgressPanel({
               onClick={() => void save("affinity", { affinity: a })}
               disabled={saving !== null}
               aria-pressed={progress.affinity === a}
-              className={`min-h-tap rounded-full px-3.5 text-sm disabled:opacity-60 ${
+              className={`min-h-tap rounded-full border px-3.5 text-sm disabled:opacity-60 ${
                 progress.affinity === a
                   ? a === "refuses"
-                    ? "bg-rose-700 font-medium text-white"
-                    : "bg-emerald-700 font-medium text-white"
-                  : "bg-slate-800 text-slate-300"
+                    ? "border-coral-dark bg-coral-dark font-medium text-white"
+                    : "border-ink bg-ink font-medium text-white"
+                  : "border-hairline bg-canvas text-subtle active:bg-surface"
               }`}
             >
               {AFFINITY_LABEL[a]}
@@ -109,19 +109,19 @@ export function ProgressPanel({
           ))}
         </div>
         {progress.affinity === "refuses" && (
-          <p className="mt-2 text-xs text-slate-500">不肯看的不会再排进今天要看的。</p>
+          <p className="mt-2 text-xs text-stone">不肯看的不会再排进今天要看的。</p>
         )}
       </div>
 
-      {error && <p className="text-sm text-rose-400">{error}</p>}
+      {error && <p className="text-sm text-coral-dark">{error}</p>}
 
-      <dl className="grid grid-cols-2 gap-y-2 border-t border-slate-800 pt-4 text-xs">
-        <dt className="text-slate-500">看过</dt>
+      <dl className="grid grid-cols-2 gap-y-2 border-t border-hairline pt-4 text-xs text-ink">
+        <dt className="text-stone">看过</dt>
         <dd className="text-right tabular-nums">
           {progress.watchCount} 次
           {progress.lastWatchedAt ? ` · ${formatRelative(progress.lastWatchedAt)}` : ""}
         </dd>
-        <dt className="text-slate-500">下次复习</dt>
+        <dt className="text-stone">下次复习</dt>
         <dd className="text-right">
           {reviewing ? formatDay(progress.nextReviewOn, today) : "不用复习"}
         </dd>
@@ -132,7 +132,7 @@ export function ProgressPanel({
         30 秒 or 40% of the Video, and skipping around does not count toward it.
       */}
       {!preview && (
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-stone">
           {counted
             ? "这次算一遍了。"
             : secondsWatched > 0

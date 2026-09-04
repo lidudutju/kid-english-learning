@@ -39,33 +39,33 @@ export function Today({ library }: { library: LibraryState }) {
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-4">
       <header className="mb-4 flex items-center gap-3">
         <BackLink to="/" />
-        <h1 className="flex-1 text-lg font-semibold">今天要看</h1>
+        <h1 className="flex-1 text-lg font-medium tracking-tight text-ink">今天要看</h1>
         {total > 0 && (
-          <span className="text-xs text-slate-500 tabular-nums">
+          <span className="text-xs text-stone tabular-nums">
             {total} 个 · 约 {minutes} 分钟
           </span>
         )}
       </header>
 
       {preview && (
-        <p className="mb-4 rounded-xl bg-amber-500/15 px-3 py-2 text-xs text-amber-300">
+        <p className="mb-4 rounded-full bg-surface-yellow px-4 py-2 text-xs font-semibold text-yellow-dark">
           预览模式还开着，现在看什么都不会计入他的记录。
         </p>
       )}
 
       {loading && !data ? (
-        <p className="mt-8 text-center text-sm text-slate-500">加载中…</p>
+        <p className="mt-8 text-center text-sm text-stone">加载中…</p>
       ) : shown === 0 ? (
         <Nothing hasVideos={(data?.videos.length ?? 0) > 0} />
       ) : (
         <>
           {total === 0 && (
-            <p className="text-sm text-emerald-400">今天该看的都看完了。</p>
+            <p className="text-sm font-medium text-success">今天该看的都看完了。</p>
           )}
 
           {watchlist.due.length > 0 && (
             <section>
-              <h2 className="mb-2 text-sm font-medium text-slate-400">该复习了</h2>
+              <h2 className="mb-2 text-sm font-medium text-faint">该复习了</h2>
               <ul className="space-y-2">
                 {watchlist.due.map((video) => (
                   <VideoRow
@@ -82,7 +82,7 @@ export function Today({ library }: { library: LibraryState }) {
 
           {watchlist.fresh.length > 0 && (
             <section className="mt-6">
-              <h2 className="mb-2 text-sm font-medium text-slate-400">新的</h2>
+              <h2 className="mb-2 text-sm font-medium text-faint">新的</h2>
               <ul className="space-y-2">
                 {watchlist.fresh.map((video) => (
                   <VideoRow
@@ -103,7 +103,7 @@ export function Today({ library }: { library: LibraryState }) {
           */}
           {watchlist.again.length > 0 && (
             <section className="mt-6">
-              <h2 className="mb-2 text-sm font-medium text-slate-400">
+              <h2 className="mb-2 text-sm font-medium text-faint">
                 今天看过了 · 他想再看就再放
               </h2>
               <ul className="space-y-2 opacity-70">
@@ -120,7 +120,7 @@ export function Today({ library }: { library: LibraryState }) {
             </section>
           )}
 
-          <p className="mt-6 text-xs leading-relaxed text-slate-500">
+          <p className="mt-6 text-xs leading-relaxed text-stone">
             看满 30 秒（或视频的 40%）才算一遍；算过之后它就从上面的列表移下去，下次复习按
             当天·1·2·4·7·15·30 天往后排。
           </p>
@@ -132,18 +132,18 @@ export function Today({ library }: { library: LibraryState }) {
 
 function Nothing({ hasVideos }: { hasVideos: boolean }) {
   return (
-    <div className="mt-16 text-center text-sm text-slate-500">
+    <div className="mt-16 text-center text-sm text-stone">
       {hasVideos ? (
         <>
           <p>今天没有要复习的了。</p>
-          <Link to="/" className="mt-2 inline-block text-sky-400">
+          <Link to="/" className="mt-2 inline-block font-medium text-brand-blue">
             去库里挑一个
           </Link>
         </>
       ) : (
         <>
           <p>库还是空的。</p>
-          <Link to="/add" className="mt-2 inline-block text-sky-400">
+          <Link to="/add" className="mt-2 inline-block font-medium text-brand-blue">
             先加一个视频
           </Link>
         </>

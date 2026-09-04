@@ -41,7 +41,7 @@ export function Add({ library }: { library: LibraryState }) {
     <div className="mx-auto max-w-2xl px-4 pb-24 pt-4">
       <header className="mb-4 flex items-center gap-3">
         <BackLink to="/" />
-        <h1 className="text-lg font-semibold">添加视频</h1>
+        <h1 className="text-lg font-medium tracking-tight text-ink">添加视频</h1>
       </header>
 
       <form onSubmit={submit} className="space-y-3">
@@ -54,24 +54,24 @@ export function Add({ library }: { library: LibraryState }) {
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}
-          className="min-h-tap w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-sky-500"
+          className="min-h-tap w-full rounded-lg border border-hairline-strong bg-canvas px-4 py-3 text-ink outline-none focus:border-brand-blue"
         />
         {(clientError ?? error) && (
-          <p className="text-sm text-rose-400">{clientError ?? error}</p>
+          <p className="text-sm text-coral-dark">{clientError ?? error}</p>
         )}
         <button
           type="submit"
           disabled={busy || !parsed?.ok}
-          className="min-h-tap w-full rounded-xl bg-sky-600 px-4 py-3 font-medium disabled:opacity-40"
+          className="min-h-tap w-full rounded-full bg-ink px-4 py-3 text-sm font-medium text-white active:bg-charcoal disabled:bg-hairline disabled:text-mist"
         >
           {busy ? "提交中…" : "加入队列"}
         </button>
       </form>
 
-      <p className="mt-3 text-xs leading-relaxed text-slate-500">
+      <p className="mt-3 text-xs leading-relaxed text-stone">
         下载和转码在家里的机器上跑，所以加入队列后可以直接关掉这个页面。
         {library.data && !library.data.agentOnline && (
-          <span className="text-amber-400">（现在那台机器没在线，任务会先排队。）</span>
+          <span className="text-yellow-dark">（现在那台机器没在线，任务会先排队。）</span>
         )}
       </p>
 
@@ -79,7 +79,7 @@ export function Add({ library }: { library: LibraryState }) {
 
       {active.length > 0 && (
         <section className="mt-6">
-          <h2 className="mb-2 text-sm font-medium text-slate-400">进行中</h2>
+          <h2 className="mb-2 text-sm font-medium text-faint">进行中</h2>
           <JobList
             jobs={active}
             agentOnline={library.data?.agentOnline ?? false}
@@ -90,7 +90,7 @@ export function Add({ library }: { library: LibraryState }) {
 
       {recent.length > 0 && (
         <section className="mt-6">
-          <h2 className="mb-2 text-sm font-medium text-slate-400">最近</h2>
+          <h2 className="mb-2 text-sm font-medium text-faint">最近</h2>
           <JobList
             jobs={recent}
             agentOnline={library.data?.agentOnline ?? false}
@@ -163,8 +163,8 @@ function UploadCard({ onQueued }: { onQueued: () => void }) {
   }
 
   return (
-    <section className="mt-8 border-t border-slate-800 pt-6">
-      <h2 className="mb-2 text-sm font-medium text-slate-400">或者从手机里选一个</h2>
+    <section className="mt-8 border-t border-hairline pt-6">
+      <h2 className="mb-2 text-sm font-medium text-faint">或者从手机里选一个</h2>
 
       <input
         ref={input}
@@ -172,23 +172,23 @@ function UploadCard({ onQueued }: { onQueued: () => void }) {
         accept="video/*"
         onChange={(e) => pick(e.target.files?.[0] ?? null)}
         disabled={state !== null}
-        className="min-h-tap w-full text-sm text-slate-400 file:mr-3 file:min-h-tap file:rounded-lg file:border-0 file:bg-slate-800 file:px-4 file:text-sm file:text-slate-200"
+        className="min-h-tap w-full text-sm text-faint file:mr-3 file:min-h-tap file:rounded-full file:border file:border-hairline-strong file:bg-canvas file:px-4 file:text-sm file:font-medium file:text-ink"
       />
 
       {file && !state && (
         <div className="mt-3 space-y-3">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-stone">
             {file.name} · {formatBytes(file.size)}
           </p>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="标题"
-            className="min-h-tap w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-sky-500"
+            className="min-h-tap w-full rounded-lg border border-hairline-strong bg-canvas px-4 py-3 text-ink outline-none focus:border-brand-blue"
           />
           <button
             onClick={() => void start()}
-            className="min-h-tap w-full rounded-xl bg-sky-600 px-4 py-3 font-medium"
+            className="min-h-tap w-full rounded-full bg-ink px-4 py-3 text-sm font-medium text-white active:bg-charcoal"
           >
             上传
           </button>
@@ -197,23 +197,23 @@ function UploadCard({ onQueued }: { onQueued: () => void }) {
 
       {state && (
         <div className="mt-3">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-faint">
             {UPLOAD_PHASE_LABEL[state.phase]} · {Math.floor(state.percent)}%
           </p>
-          <div className="mt-2 h-1 overflow-hidden rounded-full bg-slate-800">
+          <div className="mt-2 h-1 overflow-hidden rounded-full bg-hairline-soft">
             <div
-              className="h-full bg-sky-500 transition-[width] duration-300"
+              className="h-full bg-brand-blue transition-[width] duration-300"
               style={{ width: `${state.percent}%` }}
             />
           </div>
-          <p className="mt-2 text-xs text-slate-500">上传完成前别关掉这个页面。</p>
+          <p className="mt-2 text-xs text-stone">上传完成前别关掉这个页面。</p>
         </div>
       )}
 
-      {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
+      {error && <p className="mt-3 text-sm text-coral-dark">{error}</p>}
 
       {queued && (
-        <p className="mt-3 text-sm text-emerald-400">
+        <p className="mt-3 text-sm font-medium text-success">
           传完了，剩下的交给家里的机器，可以关掉页面了。
         </p>
       )}

@@ -15,7 +15,7 @@ export function BackLink({ to, label = "返回" }: { to: string; label?: string 
       aria-label={label}
       // -ml-2.5 pulls the box's padding back out so the arrow itself starts at the page margin,
       // in line with the text below it, rather than 10px inside it.
-      className="min-h-tap -ml-2.5 flex w-11 shrink-0 items-center justify-center text-slate-400"
+      className="min-h-tap -ml-2.5 flex w-11 shrink-0 items-center justify-center text-faint"
     >
       <svg
         viewBox="0 0 24 24"

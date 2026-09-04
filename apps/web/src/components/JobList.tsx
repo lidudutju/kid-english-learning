@@ -48,22 +48,22 @@ function JobRow({ job, agentOnline, onChanged }: { job: IngestJob; agentOnline: 
   const idle = backingOff || waitingOnOfflineAgent;
 
   return (
-    <li className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+    <li className="rounded-xl border border-hairline-soft bg-canvas p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">
+          <p className="truncate text-sm font-medium text-ink">
             {job.title ?? job.sourceUrl ?? job.sourceKey}
           </p>
-          <p className="mt-0.5 text-xs text-slate-400">
+          <p className="mt-0.5 text-xs text-faint">
             {backingOff ? (
-              <span className="text-amber-400">
+              <span className="text-yellow-dark">
                 第 {job.attempts} 次没成功 · 稍后自动重试
                 {job.error ? ` · ${job.error}` : ""}
               </span>
             ) : waitingOnOfflineAgent ? (
-              <span className="text-amber-400">已排队 · 家里的机器没开机</span>
+              <span className="text-yellow-dark">已排队 · 家里的机器没开机</span>
             ) : failed ? (
-              <span className="text-rose-400">
+              <span className="text-coral-dark">
                 {job.error ?? "失败"}
                 {!retryable && " · 重新选一次文件吧"}
               </span>
@@ -79,12 +79,12 @@ function JobRow({ job, agentOnline, onChanged }: { job: IngestJob; agentOnline: 
 
         <div className="flex shrink-0 items-center gap-2">
           {!isTerminal(job.status) && !idle && (
-            <span className="text-xs tabular-nums text-slate-400">{percent}%</span>
+            <span className="text-xs tabular-nums text-faint">{percent}%</span>
           )}
           {retryable && (
             <button
               onClick={() => void api.retryJob(job.id).then(onChanged)}
-              className="min-h-tap rounded-lg bg-slate-800 px-3 text-xs"
+              className="min-h-tap rounded-full border border-hairline-strong bg-canvas px-4 text-xs font-medium text-ink active:bg-surface"
             >
               重试
             </button>
@@ -92,7 +92,7 @@ function JobRow({ job, agentOnline, onChanged }: { job: IngestJob; agentOnline: 
           {isTerminal(job.status) && (
             <button
               onClick={() => void api.dismissJob(job.id).then(onChanged)}
-              className="min-h-tap px-2 text-xs text-slate-500"
+              className="min-h-tap px-2 text-xs text-stone"
               aria-label="移除这条记录"
             >
               ✕
@@ -102,9 +102,9 @@ function JobRow({ job, agentOnline, onChanged }: { job: IngestJob; agentOnline: 
       </div>
 
       {!isTerminal(job.status) && !idle && (
-        <div className="mt-2 h-1 overflow-hidden rounded-full bg-slate-800">
+        <div className="mt-2 h-1 overflow-hidden rounded-full bg-hairline-soft">
           <div
-            className="h-full bg-sky-500 transition-[width] duration-500"
+            className="h-full bg-brand-blue transition-[width] duration-500"
             style={{ width: `${percent}%` }}
           />
         </div>
