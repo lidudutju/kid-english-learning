@@ -1,0 +1,53 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "kel",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+
+  // The SPA is served from the same origin as /api, so no CORS and no preflight on the
+  // hot path. run_worker_first keeps /api/* off the asset router entirely.
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+
+  "vars": {
+    "MEDIA_BASE_URL": "https://media.felixli.io"
+  },
+
+  // The only thing standing between a single password and an online guessing attack — the KDF
+  // deliberately provides no brake. See docs/adr/0003.
+  "ratelimits": [
+    {
+      "name": "LOGIN_LIMIT",
+      "namespace_id": "1001",
+      "simple": { "limit": 8, "period": 60 }
+    }
+  ],
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kel",
+      "database_id": "16a25f4b-5b18-4db8-ad57-050753badf50",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "r2_buckets": [
+    // Public, on media.felixli.io. See docs/adr/0002.
+    { "binding": "MEDIA", "bucket_name": "kel-media" },
+    // Private. Nightly D1 exports live here and must never be reachable from the web.
+    { "binding": "PRIVATE", "bucket_name": "kel-private" }
+  ],
+
+  "triggers": {
+    // 03:17 Beijing — nightly metadata export.
+    "crons": ["17 19 * * *"]
+  },
+
+  "routes": [{ "pattern": "app.felixli.io", "custom_domain": true }]
+}

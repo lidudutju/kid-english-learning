@@ -1,0 +1,24 @@
+{
+  "name": "kid-english-learning",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@9.12.3",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @kel/web --filter @kel/worker dev",
+    "dev:agent": "pnpm --filter @kel/agent dev",
+    "build": "pnpm -F @kel/web build",
+    "release": "pnpm build && pnpm -F @kel/worker run deploy",
+    "agent:check": "pnpm -F @kel/agent run doctor",
+    "agent:start": "pnpm -F @kel/agent run start",
+    "typecheck": "pnpm -r typecheck",
+    "check:sha256": "pnpm -F @kel/agent exec tsx ../../scripts/check-sha256.ts",
+    "check:learning": "pnpm -F @kel/agent exec tsx ../../scripts/check-learning.ts",
+    "db:migrate:local": "pnpm -F @kel/worker migrate:local",
+    "db:migrate:remote": "pnpm -F @kel/worker migrate:remote",
+    "gen-password": "node scripts/gen-password.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

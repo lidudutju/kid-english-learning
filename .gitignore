@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+.env
+*.local
+.DS_Store
+apps/agent/work/
+apps/agent/agent.config.json
+*.tsbuildinfo
