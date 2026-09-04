@@ -63,6 +63,13 @@ export const api = {
       body: JSON.stringify({ url }),
     }),
 
+  /** The one editable field. A file picked on a phone is called `dd2d35a7f664….MOV`. */
+  renameVideo: (id: string, title: string) =>
+    json<{ title: string }>(`/api/videos/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ title }),
+    }),
+
   removeVideo: (id: string) =>
     json<{ ok: true }>(`/api/videos/${id}`, { method: "DELETE" }),
 

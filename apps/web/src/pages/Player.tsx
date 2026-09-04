@@ -5,6 +5,7 @@ import { api } from "../api.js";
 import { BackLink } from "../components/BackLink.js";
 import { ProgressPanel } from "../components/ProgressPanel.js";
 import { TranscriptPanel } from "../components/TranscriptPanel.js";
+import { VideoTitle } from "../components/VideoTitle.js";
 import { formatBytes, formatDuration, formatRelative } from "../format.js";
 import { usePreviewMode } from "../preview.js";
 import { useLearning } from "../progress.js";
@@ -130,7 +131,7 @@ export function Player({ library }: { library: LibraryState }) {
       <div className="mx-auto max-w-2xl px-4 pt-4">
         <div className="mb-3 flex items-center gap-3">
           <BackLink to={backTo} />
-          <h1 className="min-w-0 flex-1 text-base font-medium leading-snug text-ink">{video.title}</h1>
+          <VideoTitle video={video} onRenamed={library.refresh} />
         </div>
 
         <dl className="space-y-1 text-xs text-stone">

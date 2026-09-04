@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import {
   addYoutubeRequest,
   parseYoutubeInput,
+  videoUpdateRequest,
   YOUTUBE_PARSE_MESSAGE,
   MAX_ATTEMPTS,
 } from "@kel/shared";
@@ -57,6 +58,31 @@ videoRoutes.post("/youtube", async (c) => {
   }
 
   return c.json({ jobId: id, sourceKey: link.sourceKey }, 201);
+});
+
+/**
+ * Rename a Video.
+ *
+ * `updated_at` is bumped rather than left alone, and that is the whole reason this works end to
+ * end: the library manifest's version is row counts plus the newest `updated_at` (routes/
+ * library.ts), so without the bump the very next poll would 304 and the old title would come
+ * straight back on every other screen.
+ *
+ * Only the title. The Source Key, the digest and the asset keys are the Video's identity — an
+ * editable identity would quietly break both Duplicate blocks.
+ */
+videoRoutes.patch("/:id", async (c) => {
+  const parsed = videoUpdateRequest.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: "名字不能是空的" }, 400);
+
+  const res = await c.env.DB.prepare(
+    `UPDATE videos SET title = ?2, updated_at = ?3 WHERE id = ?1`,
+  )
+    .bind(c.req.param("id"), parsed.data.title, Date.now())
+    .run();
+
+  if (!res.meta.changes) return c.json({ error: "找不到这个视频" }, 404);
+  return c.json({ title: parsed.data.title });
 });
 
 /**

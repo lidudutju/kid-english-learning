@@ -186,6 +186,22 @@ export const addYoutubeResponse = z.object({
   sourceKey: z.string(),
 });
 
+/**
+ * Rename a Video.
+ *
+ * The title is the only thing about a Video a person may edit, and it earns that because it is
+ * the only field that can arrive plainly wrong: an iPhone hands over `dd2d35a7f664….MOV`, and a
+ * YouTube title is whatever the uploader felt like typing. Everything else is either derived from
+ * the bytes (duration, size, digest) or is the Learner's own history — neither is a matter of
+ * opinion, and both would be a lie if they were editable.
+ *
+ * Trimmed before it is checked, so a title of three spaces is refused rather than stored.
+ */
+export const videoUpdateRequest = z.object({
+  title: z.string().trim().min(1).max(500),
+});
+export type VideoUpdateRequest = z.infer<typeof videoUpdateRequest>;
+
 /* ------------------------------------------------------------- browser → API: upload */
 
 /**
