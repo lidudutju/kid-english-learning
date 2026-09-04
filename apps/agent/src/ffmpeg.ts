@@ -7,8 +7,6 @@ export interface Probe {
   height: number | null;
   videoCodec: string | null;
   audioCodec: string | null;
-  /** Bits per second over the whole file — what the phone's connection has to keep up with. */
-  bitrate: number | null;
   /** True when the `moov` atom is already at the front of the file. */
   faststart: boolean;
 }
