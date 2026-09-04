@@ -4,6 +4,8 @@ import {
   type LibraryResponse,
   type Progress,
   type Stage,
+  type TranscriptResponse,
+  type TranscriptSearchResponse,
 } from "@kel/shared";
 
 /** Thrown when the session cookie is missing or expired — the UI shows the login screen. */
@@ -84,6 +86,18 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ secondsWatched }),
     }),
+
+  /** One Video's cues. Fetched on demand, not polled — see routes/transcripts.ts. */
+  transcript: (id: string) => json<TranscriptResponse>(`/api/videos/${id}/transcript`),
+
+  /**
+   * The one search that has to go to the server, because Transcripts are the one thing the
+   * client does not already hold (see search.ts).
+   */
+  searchTranscripts: (query: string) =>
+    json<TranscriptSearchResponse>(
+      `/api/transcripts/search?q=${encodeURIComponent(query)}`,
+    ),
 
   prepareUpload: (body: {
     sourceDigest: string;

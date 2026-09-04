@@ -84,6 +84,9 @@ videoRoutes.delete("/:id", async (c) => {
     c.env.DB.prepare(`DELETE FROM videos WHERE id = ?1`).bind(id),
     c.env.DB.prepare(`DELETE FROM progress WHERE video_id = ?1`).bind(id),
     c.env.DB.prepare(`DELETE FROM watches WHERE video_id = ?1`).bind(id),
+    // The Transcript and its Focus Words are about this Video and nothing else. Leaving it
+    // behind would also keep the Video findable by its own lyrics through transcript search.
+    c.env.DB.prepare(`DELETE FROM transcripts WHERE video_id = ?1`).bind(id),
   ]);
 
   const keys = [row.playable_key, row.thumb_key].filter((k): k is string => Boolean(k));

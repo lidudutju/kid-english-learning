@@ -60,15 +60,15 @@ Playables straight to R2.
 _Avoid_: worker (means a Cloudflare Worker), daemon, downloader
 
 **Transcript**:
-The timed text of a Video — pulled from YouTube's own or auto-generated captions, or produced
-locally by speech recognition for uploaded files. Searchable, and the source the Focus Words
-are drawn from.
+The timed text of a Video, pulled from YouTube's own captions or its auto-generated ones. A Video
+uploaded from the phone has none — speech recognition was considered and rejected (ADR-0005).
+Searchable, and the source the Focus Words are drawn from.
 _Avoid_: subtitles, captions, srt
 
 **Focus Words**:
-The handful of words and sentence patterns a Video actually teaches, extracted from its
-Transcript. What Review is built on, and what makes it possible to say whether a new Video is
-mostly-known or mostly-new.
+The handful of words and sentence patterns a Video actually teaches, counted from the repetition
+in its Transcript. What makes it possible to say whether a new Video is mostly-known or
+mostly-new, and therefore which new one the Watchlist offers tonight.
 _Avoid_: vocabulary, keywords, tags
 
 ### Learning

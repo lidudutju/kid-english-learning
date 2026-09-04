@@ -23,8 +23,8 @@ export function Today({ library }: { library: LibraryState }) {
   // `learning` is keyed on the manifest version, which covers Videos and Progress both, so the
   // list is rebuilt exactly when something actually changed — and is stable while scrolling.
   const watchlist = useMemo(
-    () => buildWatchlist(data?.videos ?? [], learning.progressOf, learning.today),
-    [data?.videos, learning],
+    () => buildWatchlist(data?.videos ?? [], learning.progressOf, learning.today, data?.focus),
+    [data?.videos, data?.focus, learning],
   );
 
   // The header counts what is actually left to do; 看过了 sits below it as an offer.

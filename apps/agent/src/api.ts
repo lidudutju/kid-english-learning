@@ -2,7 +2,12 @@ import { createWriteStream } from "node:fs";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream as WebReadableStream } from "node:stream/web";
-import { agentClaimResponse, type AgentClaimJob, type JobStatus } from "@kel/shared";
+import {
+  agentClaimResponse,
+  type AgentClaimJob,
+  type AgentCompleteRequest,
+  type JobStatus,
+} from "@kel/shared";
 import type { Config } from "./config.js";
 
 /** Thrown when the Worker says another Agent now owns this job. Abandon, do not retry. */
@@ -13,17 +18,15 @@ export class LeaseLostError extends Error {
   }
 }
 
-export interface CompletePayload {
-  sourceDigest: string;
-  hasThumb: boolean;
-  bytes: number;
-  title: string;
-  channel: string | null;
-  durationSeconds: number | null;
-  width: number | null;
-  height: number | null;
-  publishedAt: string | null;
-}
+/**
+ * Everything but `agentId`, which this class fills in.
+ *
+ * Derived from the Worker's own schema rather than restated here. It used to be restated, and
+ * that was fine while both sides were one flat list of scalars; a nested Transcript with its
+ * Focus Words is exactly the shape that drifts, and the failure mode is the Agent finishing a
+ * job and being handed a 400.
+ */
+export type CompletePayload = Omit<AgentCompleteRequest, "agentId">;
 
 export class Api {
   constructor(private readonly config: Config) {}

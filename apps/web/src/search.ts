@@ -1,4 +1,4 @@
-import type { Video } from "@kel/shared";
+import type { Video, VideoFocus } from "@kel/shared";
 import { isPending, type Learning } from "./progress.js";
 
 export const DURATION_BUCKETS = ["any", "short", "medium", "long"] as const;
@@ -68,11 +68,25 @@ export interface IndexedVideo {
   haystack: string;
 }
 
-export function buildIndex(videos: Video[]): IndexedVideo[] {
-  return videos.map((video) => ({
-    video,
-    haystack: [video.title, video.channel ?? ""].join(" ").toLowerCase(),
-  }));
+/**
+ * `focus` is why searching for a word from a song mostly works without asking the server.
+ *
+ * The Focus Words are the words a Video repeats, and a word someone remembers well enough to
+ * search for is almost always one of them — so folding them into the haystack turns "shark" into
+ * a hit on a Video whose title says only "Kids Songs Vol. 3". Anything rarer than that needs the
+ * real Transcript, which is what /api/transcripts/search is for.
+ */
+export function buildIndex(videos: Video[], focus: VideoFocus[]): IndexedVideo[] {
+  const focusOf = new Map(focus.map((f) => [f.videoId, f]));
+  return videos.map((video) => {
+    const f = focusOf.get(video.id);
+    return {
+      video,
+      haystack: [video.title, video.channel ?? "", ...(f?.words ?? []), ...(f?.phrases ?? [])]
+        .join(" ")
+        .toLowerCase(),
+    };
+  });
 }
 
 function matchesDuration(seconds: number | null, bucket: DurationBucket): boolean {

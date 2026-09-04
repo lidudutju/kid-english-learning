@@ -31,17 +31,30 @@ async function exportMetadata(env: Env, scheduledTime: number): Promise<void> {
     // Watches are the only thing here that grows without bound, and they are what the counters
     // are derived from — a year of a toddler's repetitions is still a few thousand rows.
     env.DB.prepare(`SELECT * FROM watches ORDER BY counted_at`),
+    /*
+     * Transcripts without their `cues` or `text`.
+     *
+     * Not an oversight and not laziness: those two columns are the whole bulk of the table, and
+     * serialising a library's worth of them would spend the entire 10 ms on the one thing in this
+     * database that is fully re-derivable — the cues come from the Source, and the Focus Words
+     * come from a pure function over them. What is kept is the part worth knowing after a
+     * restore: which Videos had a Transcript, where it came from, and what it taught.
+     */
+    env.DB.prepare(
+      `SELECT video_id, lang, kind, focus_words, created_at FROM transcripts ORDER BY video_id`,
+    ),
   ]);
 
   const day = new Date(scheduledTime).toISOString().slice(0, 10);
   const payload = {
     exportedAt: new Date(scheduledTime).toISOString(),
-    schemaVersion: 2,
+    schemaVersion: 3,
     videos: rowsOf(batch, 0),
     failedJobs: rowsOf(batch, 1),
     learners: rowsOf(batch, 2),
     progress: rowsOf(batch, 3),
     watches: rowsOf(batch, 4),
+    transcripts: rowsOf(batch, 5),
   };
 
   await env.PRIVATE.put(`backups/${day}.json`, JSON.stringify(payload), {

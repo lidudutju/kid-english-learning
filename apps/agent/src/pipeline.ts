@@ -15,7 +15,12 @@ import {
   probe,
 } from "./ffmpeg.js";
 import { uploadFile } from "./r2.js";
-import { download, isPermanentFailure } from "./ytdlp.js";
+import {
+  download,
+  isPermanentFailure,
+  transcriptPayload,
+  type DownloadedTranscript,
+} from "./ytdlp.js";
 
 type ReportableStatus = Extract<JobStatus, "downloading" | "normalizing" | "uploading">;
 
@@ -108,6 +113,15 @@ interface SourceMaterial {
   channel: string | null;
   durationSeconds: number | null;
   publishedAt: string | null;
+  /**
+   * Always null for an upload.
+   *
+   * A phone recording has no captions, and generating them locally was considered and rejected
+   * (docs/adr/0005): offline ASR on a child singing produces something confident and wrong, and
+   * the Focus Words derived from it would quietly teach the wrong words. The field is here rather
+   * than absent so that adding a real transcription step later is a change in one place.
+   */
+  transcript: DownloadedTranscript | null;
 }
 
 async function fetchSource(
@@ -135,6 +149,7 @@ async function fetchSource(
       channel: null,
       durationSeconds: null,
       publishedAt: null,
+      transcript: null,
     };
   }
 
@@ -175,6 +190,11 @@ export async function processJob(
     const source = await fetchSource(config, api, job, dir, reporter, abort.signal);
     if (abort.signal.aborted) return { status: "abandoned" };
     log(`取到源文件：${source.title}`);
+    log(
+      source.transcript
+        ? `字幕：${source.transcript.lang} ${source.transcript.kind === "manual" ? "官方" : "自动"}，${source.transcript.cues.length} 句`
+        : "没有英文字幕（不影响播放）",
+    );
 
     /* ------------------------------------------------------ digest and probing */
     reporter.set("normalizing", 0, "正在校验");
@@ -254,6 +274,7 @@ export async function processJob(
       width: playableProbe.width,
       height: playableProbe.height,
       publishedAt: source.publishedAt,
+      transcript: source.transcript ? transcriptPayload(source.transcript) : null,
     });
 
     return { status: "done" };

@@ -7,8 +7,10 @@ import {
   toJob,
   toProgress,
   toVideo,
+  toVideoFocus,
   type JobRow,
   type ProgressRow,
+  type TranscriptRow,
   type VideoRow,
 } from "../db.js";
 
@@ -38,12 +40,20 @@ libraryRoutes.get("/", async (c) => {
     ).bind(now - 24 * 60 * 60 * 1000),
     c.env.DB.prepare(`SELECT MAX(last_seen_at) AS last_seen_at FROM agents`),
     c.env.DB.prepare(`SELECT * FROM progress WHERE learner_id = ?1`).bind(DEFAULT_LEARNER_ID),
+    // Not `SELECT *`: the cues and the full text are the bulk of a Transcript and neither belongs
+    // in a manifest that is polled every few seconds.
+    c.env.DB.prepare(`SELECT video_id, focus_words, updated_at FROM transcripts`),
   ]);
 
   const videoRows = rowsOf<VideoRow>(batch, 0);
   const jobRows = rowsOf<JobRow>(batch, 1);
   const progressRows = rowsOf<ProgressRow>(batch, 3);
-  const videos = videoRows.map((r) => toVideo(r, c.env.MEDIA_BASE_URL));
+  const focusRows = rowsOf<
+    Pick<TranscriptRow, "video_id" | "focus_words" | "updated_at">
+  >(batch, 4);
+
+  const transcribed = new Set(focusRows.map((r) => r.video_id));
+  const videos = videoRows.map((r) => toVideo(r, c.env.MEDIA_BASE_URL, transcribed.has(r.id)));
   const jobs = jobRows.map(toJob);
   const lastSeen = rowsOf<{ last_seen_at: number | null }>(batch, 2)[0]?.last_seen_at ?? null;
 
@@ -52,10 +62,11 @@ libraryRoutes.get("/", async (c) => {
   const agentOnline = lastSeen !== null && now - lastSeen < LEASE_SECONDS * 1000;
 
   const body: LibraryResponse = {
-    version: libraryVersion(videoRows, jobRows, progressRows),
+    version: libraryVersion(videoRows, jobRows, progressRows, focusRows),
     videos,
     jobs,
     progress: progressRows.map(toProgress),
+    focus: focusRows.map(toVideoFocus),
     today: dayKey(now),
     agentOnline,
     agentLastSeenAt: lastSeen,
@@ -82,6 +93,7 @@ function libraryVersion(
   videos: VideoRow[],
   jobs: JobRow[],
   progress: ProgressRow[],
+  transcripts: { updated_at: number }[],
 ): string {
   const newest = (rows: { updated_at: number }[]) =>
     rows.reduce((max, r) => Math.max(max, r.updated_at), 0);
@@ -89,8 +101,10 @@ function libraryVersion(
     videos.length,
     jobs.length,
     progress.length,
+    transcripts.length,
     newest(videos),
     newest(jobs),
     newest(progress),
+    newest(transcripts),
   ].join(".");
 }

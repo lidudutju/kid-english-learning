@@ -4,6 +4,7 @@ import { watchThresholdSeconds, type Progress } from "@kel/shared";
 import { api } from "../api.js";
 import { BackLink } from "../components/BackLink.js";
 import { ProgressPanel } from "../components/ProgressPanel.js";
+import { TranscriptPanel } from "../components/TranscriptPanel.js";
 import { formatBytes, formatDuration, formatRelative } from "../format.js";
 import { usePreviewMode } from "../preview.js";
 import { useLearning } from "../progress.js";
@@ -40,6 +41,22 @@ export function Player({ library }: { library: LibraryState }) {
 
   const tracker = useWatchTracker(video, !preview, onProgress);
   const backTo = location.state === "today" ? "/today" : "/";
+
+  /**
+   * The element itself, for the Transcript panel to read `currentTime` from and seek with.
+   *
+   * State rather than a ref, because the panel has to re-subscribe when the element appears —
+   * a ref assignment happens without telling anyone. The Watch tracker needs the same element,
+   * so the two ref callbacks are chained rather than either of them owning it.
+   */
+  const [player, setPlayer] = useState<HTMLVideoElement | null>(null);
+  const attach = useCallback(
+    (el: HTMLVideoElement | null) => {
+      setPlayer(el);
+      tracker.ref(el);
+    },
+    [tracker.ref],
+  );
 
   if (!library.data) {
     return <p className="p-8 text-center text-sm text-stone">加载中…</p>;
@@ -100,7 +117,7 @@ export function Player({ library }: { library: LibraryState }) {
         */}
         <video
           key={video.id}
-          ref={tracker.ref}
+          ref={attach}
           src={video.playableUrl}
           poster={video.thumbUrl ?? undefined}
           controls
@@ -152,6 +169,8 @@ export function Player({ library }: { library: LibraryState }) {
           preview={preview}
           onProgress={onProgress}
         />
+
+        <TranscriptPanel video={video} player={player} />
 
         {!preview && (
           <button

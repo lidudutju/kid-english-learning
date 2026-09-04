@@ -6,6 +6,7 @@ import { libraryRoutes } from "./routes/library.js";
 import { jobRoutes, videoRoutes } from "./routes/videos.js";
 import { learningRoutes } from "./routes/learning.js";
 import { uploadRoutes } from "./routes/uploads.js";
+import { transcriptRoutes, transcriptSearchRoutes } from "./routes/transcripts.js";
 import { agentRoutes } from "./routes/agent.js";
 import { nightly } from "./cron.js";
 
@@ -51,6 +52,9 @@ app.route("/api/library", libraryRoutes);
 app.route("/api/videos", videoRoutes);
 // Stage, Affinity and Watches hang off a Video, so they share its prefix.
 app.route("/api/videos", learningRoutes);
+app.route("/api/videos", transcriptRoutes);
+// Searching *across* Transcripts is not about one Video, so it does not live under /videos.
+app.route("/api/transcripts", transcriptSearchRoutes);
 app.route("/api/uploads", uploadRoutes);
 app.route("/api/jobs", jobRoutes);
 app.route("/api/agent", agentRoutes);

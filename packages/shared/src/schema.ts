@@ -2,6 +2,8 @@ import { z } from "zod";
 import { JOB_STATUSES, AGENT_REPORTABLE_STATUSES } from "./jobs.js";
 import { AFFINITIES, STAGES } from "./learning.js";
 import { MAX_UPLOAD_BYTES } from "./uploads.js";
+import { MAX_CUE_CHARS, MAX_TRANSCRIPT_CUES } from "./vtt.js";
+import { FOCUS_MAX_PHRASES, FOCUS_MAX_WORDS } from "./focus.js";
 
 export const SOURCE_KINDS = ["youtube", "upload"] as const;
 export const sourceKind = z.enum(SOURCE_KINDS);
@@ -24,6 +26,11 @@ export const video = z.object({
   playableUrl: z.string(),
   thumbUrl: z.string().nullable(),
   addedAt: z.number(),
+  /**
+   * Whether a Transcript exists. The cues themselves are fetched per Video — a few hundred
+   * Transcripts would be megabytes, and the manifest is polled.
+   */
+  hasTranscript: z.boolean(),
 });
 export type Video = z.infer<typeof video>;
 
@@ -46,6 +53,74 @@ export const ingestJob = z.object({
   updatedAt: z.number(),
 });
 export type IngestJob = z.infer<typeof ingestJob>;
+
+/**
+ * Where a Transcript came from.
+ *
+ * Worth keeping, because it is the difference between lyrics someone typed out and a machine's
+ * best guess at singing. Only the second one is ever wrong in ways that make a parent frown at
+ * the Focus Words, and when they do, this field is the explanation.
+ */
+export const TRANSCRIPT_KINDS = ["manual", "auto"] as const;
+export const transcriptKind = z.enum(TRANSCRIPT_KINDS);
+export type TranscriptKind = z.infer<typeof transcriptKind>;
+
+export const TRANSCRIPT_KIND_LABEL: Record<TranscriptKind, string> = {
+  manual: "官方字幕",
+  auto: "自动识别",
+};
+
+export const transcriptCueSchema = z.object({
+  startSeconds: z.number().nonnegative(),
+  endSeconds: z.number().nonnegative(),
+  text: z.string().min(1).max(MAX_CUE_CHARS),
+});
+
+export const focusWordSchema = z.object({
+  text: z.string().min(1).max(120),
+  count: z.number().int().positive(),
+});
+
+/** One Video's Transcript, fetched when the Player opens it. */
+export const transcriptResponse = z.object({
+  videoId: z.string(),
+  lang: z.string(),
+  kind: transcriptKind,
+  cues: z.array(transcriptCueSchema),
+  /** Derived once on ingest and stored, so every surface shows the same list. */
+  words: z.array(focusWordSchema),
+  phrases: z.array(focusWordSchema),
+});
+export type TranscriptResponse = z.infer<typeof transcriptResponse>;
+
+/**
+ * A Video's Focus Words, stripped to just the terms.
+ *
+ * Counts are dropped here on purpose: this rides in the polled manifest, where it exists to let
+ * Today pick a new Video whose words he mostly knows. The counts are in the Transcript response,
+ * which is what actually displays them.
+ */
+export const videoFocus = z.object({
+  videoId: z.string(),
+  words: z.array(z.string()),
+  phrases: z.array(z.string()),
+});
+export type VideoFocus = z.infer<typeof videoFocus>;
+
+export const transcriptSearchHit = z.object({
+  videoId: z.string(),
+  /** The matching line, plus a little either side, for showing under the title. */
+  snippet: z.string(),
+  startSeconds: z.number().nonnegative().nullable(),
+});
+
+export const transcriptSearchResponse = z.object({
+  query: z.string(),
+  hits: z.array(transcriptSearchHit),
+  /** True when there were more matches than the cap — the UI says "还有更多" rather than lying. */
+  truncated: z.boolean(),
+});
+export type TranscriptSearchResponse = z.infer<typeof transcriptSearchResponse>;
 
 export const stage = z.enum(STAGES);
 export const affinity = z.enum(AFFINITIES);
@@ -80,6 +155,11 @@ export const libraryResponse = z.object({
    * neutral — no point shipping a few hundred rows of defaults.
    */
   progress: z.array(progress),
+  /**
+   * Focus Words for every Video that has a Transcript. Small enough to poll (a few dozen bytes
+   * per Video) and needed up front: Today cannot choose what to show next without them.
+   */
+  focus: z.array(videoFocus),
   /**
    * Today, as the server sees it. What is Due must not depend on the phone's clock or on which
    * side of midnight its timezone happens to be.
@@ -219,7 +299,36 @@ export const agentCompleteRequest = z.object({
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
   publishedAt: z.string().max(40).nullable(),
+  /**
+   * The Transcript, if the Source had one.
+   *
+   * Sent with the registration rather than through a route of its own, so a Video and its
+   * Transcript appear in the same batch — there is no moment where the library shows a Video
+   * whose Focus Words are still on their way. Absent for uploads, which have no captions at all
+   * (docs/adr/0005); `null` and omitted mean the same thing.
+   */
+  transcript: z
+    .object({
+      lang: z.string().min(1).max(20),
+      kind: transcriptKind,
+      cues: z.array(transcriptCueSchema).min(1).max(MAX_TRANSCRIPT_CUES),
+      /**
+       * The Focus Words, counted by the Agent rather than by the Worker.
+       *
+       * Not where you would expect them: they are derived from the cues right here in this
+       * payload, so the Worker could compute them itself and not have to trust anyone. It does
+       * not, because it cannot afford to — `focusFrom` over a full-size Transcript measures
+       * ~6ms on a laptop, and a Worker gets 10ms of CPU for the whole request. One
+       * `pnpm check:focus` re-derives every stored Transcript and reports any Video whose
+       * Focus Words no longer match the current rules, which is the honest way to keep an
+       * Agent that is a version behind from going unnoticed.
+       */
+      words: z.array(focusWordSchema).max(FOCUS_MAX_WORDS),
+      phrases: z.array(focusWordSchema).max(FOCUS_MAX_PHRASES),
+    })
+    .nullish(),
 });
+export type AgentCompleteRequest = z.infer<typeof agentCompleteRequest>;
 
 export const agentFailRequest = z.object({
   agentId: z.string(),

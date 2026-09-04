@@ -14,6 +14,7 @@
     "typecheck": "pnpm -r typecheck",
     "check:sha256": "pnpm -F @kel/agent exec tsx ../../scripts/check-sha256.ts",
     "check:learning": "pnpm -F @kel/agent exec tsx ../../scripts/check-learning.ts",
+    "check:focus": "pnpm -F @kel/agent exec tsx ../../scripts/check-focus.ts",
     "db:migrate:local": "pnpm -F @kel/worker migrate:local",
     "db:migrate:remote": "pnpm -F @kel/worker migrate:remote",
     "gen-password": "node scripts/gen-password.mjs"

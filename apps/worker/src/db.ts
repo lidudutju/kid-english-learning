@@ -1,12 +1,18 @@
 import type {
   Affinity,
+  Focus,
   IngestJob,
   JobStatus,
   Progress,
   SourceKind,
   Stage,
+  TranscriptCue,
+  TranscriptKind,
+  TranscriptResponse,
   Video,
+  VideoFocus,
 } from "@kel/shared";
+import { EMPTY_FOCUS } from "@kel/shared";
 
 /** There is one Learner today, and Progress still belongs to it rather than to the library. */
 export const DEFAULT_LEARNER_ID = "default";
@@ -69,7 +75,18 @@ export interface ProgressRow {
   updated_at: number;
 }
 
-export function toVideo(row: VideoRow, mediaBaseUrl: string): Video {
+export interface TranscriptRow {
+  video_id: string;
+  lang: string;
+  kind: string;
+  cues: string;
+  text: string;
+  focus_words: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export function toVideo(row: VideoRow, mediaBaseUrl: string, hasTranscript: boolean): Video {
   const base = mediaBaseUrl.replace(/\/+$/, "");
   return {
     id: row.id,
@@ -85,6 +102,47 @@ export function toVideo(row: VideoRow, mediaBaseUrl: string): Video {
     playableUrl: `${base}/${row.playable_key}`,
     thumbUrl: row.thumb_key ? `${base}/${row.thumb_key}` : null,
     addedAt: row.added_at,
+    hasTranscript,
+  };
+}
+
+/**
+ * The stored Focus Words, or an empty set.
+ *
+ * Tolerant of unparseable JSON rather than throwing: this column is written by one code path and
+ * read by three, and a Video whose Focus Words cannot be read should still play.
+ */
+export function parseFocus(json: string): Focus {
+  try {
+    const parsed = JSON.parse(json) as Partial<Focus>;
+    return {
+      words: parsed.words ?? [],
+      phrases: parsed.phrases ?? [],
+    };
+  } catch {
+    return EMPTY_FOCUS;
+  }
+}
+
+export function toTranscript(row: TranscriptRow): TranscriptResponse {
+  const focus = parseFocus(row.focus_words);
+  return {
+    videoId: row.video_id,
+    lang: row.lang,
+    kind: row.kind as TranscriptKind,
+    cues: JSON.parse(row.cues) as TranscriptCue[],
+    words: focus.words,
+    phrases: focus.phrases,
+  };
+}
+
+/** The manifest's compact form: terms only, no counts. */
+export function toVideoFocus(row: Pick<TranscriptRow, "video_id" | "focus_words">): VideoFocus {
+  const focus = parseFocus(row.focus_words);
+  return {
+    videoId: row.video_id,
+    words: focus.words.map((w) => w.text),
+    phrases: focus.phrases.map((p) => p.text),
   };
 }
 

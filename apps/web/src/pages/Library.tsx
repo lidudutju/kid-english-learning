@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { isTerminal } from "@kel/shared";
 import { JobList } from "../components/JobList.js";
+import { TranscriptHits } from "../components/TranscriptHits.js";
 import { VideoRow } from "../components/VideoRow.js";
 import { useLearning } from "../progress.js";
 import {
@@ -24,13 +25,17 @@ export function Library({ library }: { library: LibraryState }) {
 
   // Rebuilt only when the library actually changes — a 304 poll leaves `version` alone, so
   // typing never pays for re-indexing.
-  const index = useMemo(() => buildIndex(data?.videos ?? []), [data?.version]);
+  const index = useMemo(
+    () => buildIndex(data?.videos ?? [], data?.focus ?? []),
+    [data?.version],
+  );
   const learning = useLearning(data);
   const results = useMemo(
     () => applyFilters(index, filters, learning),
     [index, filters, learning],
   );
 
+  const shownIds = useMemo(() => new Set(results.map((v) => v.id)), [results]);
   const activeJobs = (data?.jobs ?? []).filter((j) => !isTerminal(j.status));
 
   return (
@@ -65,7 +70,7 @@ export function Library({ library }: { library: LibraryState }) {
       <input
         value={filters.query}
         onChange={(e) => setFilters({ ...filters, query: e.target.value })}
-        placeholder="搜标题、频道"
+        placeholder="搜标题、频道、歌词"
         type="search"
         autoCapitalize="off"
         autoCorrect="off"
@@ -140,6 +145,16 @@ export function Library({ library }: { library: LibraryState }) {
           ))}
         </ul>
       )}
+
+      {/*
+        Only when something is being searched for, and only for Videos the local filter missed —
+        so in the common case (no query) this renders nothing and makes no request.
+      */}
+      <TranscriptHits
+        query={filters.query}
+        videos={data?.videos ?? []}
+        exclude={shownIds}
+      />
 
       <Link
         to="/add"

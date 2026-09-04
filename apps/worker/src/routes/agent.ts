@@ -8,6 +8,7 @@ import {
   LEASED_STATUSES,
   MAX_ATTEMPTS,
   RETRY_BACKOFF_MS,
+  transcriptText,
   type AgentClaim,
 } from "@kel/shared";
 import type { AppBindings } from "../env.js";
@@ -227,6 +228,14 @@ agentRoutes.post("/jobs/:id/complete", async (c) => {
   // filename by the Agent.
   const title = job.source_kind === "upload" ? (job.title ?? body.title) : body.title;
 
+  /**
+   * The Transcript rides in the same batch as the Video, which is to say the same transaction.
+   * It has to: the manifest reports `hasTranscript` and carries the Focus Words, so a Video that
+   * appeared first and gained its Transcript a moment later would show up in the library with
+   * nothing to say about itself, and Today would rank it as if it had no words at all.
+   */
+  const transcript = body.transcript;
+
   try {
     await c.env.DB.batch([
       c.env.DB.prepare(
@@ -260,6 +269,23 @@ agentRoutes.post("/jobs/:id/complete", async (c) => {
                 original_key = NULL, updated_at = ?4
           WHERE id = ?1`,
       ).bind(jobId, videoId, title, now),
+      ...(transcript
+        ? [
+            c.env.DB.prepare(
+              `INSERT INTO transcripts
+                 (video_id, lang, kind, cues, text, focus_words, created_at, updated_at)
+               VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?7)`,
+            ).bind(
+              videoId,
+              transcript.lang,
+              transcript.kind,
+              JSON.stringify(transcript.cues),
+              transcriptText(transcript.cues),
+              JSON.stringify({ words: transcript.words, phrases: transcript.phrases }),
+              now,
+            ),
+          ]
+        : []),
     ]);
   } catch (err) {
     if (isUniqueViolation(err)) {
