@@ -81,7 +81,12 @@ export function useWatchTracker(
       lastTime.current = now;
 
       // Only forward, only real-time-sized steps: a seek earns no credit either way.
-      if (delta <= 0 || delta > SEEK_GAP_SECONDS) return;
+      if (delta <= 0 || delta > SEEK_GAP_SECONDS) {
+        // A loop wraps round by seeking to the start rather than ending, and on an AirPlay target
+        // that arrives as a bare jump backwards to zero — same replay, so count it as one.
+        if (now < RESTART_SECONDS && accumulated.current > 0) restart();
+        return;
+      }
 
       accumulated.current += delta;
       setSecondsWatched(accumulated.current);

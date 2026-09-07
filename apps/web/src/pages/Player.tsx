@@ -9,6 +9,7 @@ import { VideoTitle } from "../components/VideoTitle.js";
 import { formatBytes, formatDuration, formatRelative } from "../format.js";
 import { usePreviewMode } from "../preview.js";
 import { useLearning } from "../progress.js";
+import { useAirplay } from "../useAirplay.js";
 import type { LibraryState } from "../useLibrary.js";
 import { useWatchTracker } from "../useWatchTracker.js";
 
@@ -58,6 +59,8 @@ export function Player({ library }: { library: LibraryState }) {
     },
     [tracker.ref],
   );
+
+  const airplay = useAirplay(player);
 
   if (!library.data) {
     return <p className="p-8 text-center text-sm text-stone">加载中…</p>;
@@ -115,6 +118,7 @@ export function Player({ library }: { library: LibraryState }) {
           is deliberately left enabled so the AirPlay button stays in the native controls.
           preload="metadata" is what makes the first tap responsive — the Playable has its moov
           atom at the front, so Safari needs only the head of the file to be ready to draw.
+          `loop` follows AirPlay: see useAirplay for why the TV repeats and the phone does not.
         */}
         <video
           key={video.id}
@@ -124,9 +128,17 @@ export function Player({ library }: { library: LibraryState }) {
           controls
           playsInline
           preload="metadata"
+          loop={airplay}
           className="mx-auto max-h-[70vh] w-full bg-black"
         />
       </div>
+
+      {/* Otherwise "为什么一直不停" is a mystery, and the answer is out of sight on the TV. */}
+      {airplay && (
+        <p className="bg-black px-4 pb-2 text-center text-xs text-mist">
+          隔空播放中 · 播完会自动重播
+        </p>
+      )}
 
       <div className="mx-auto max-w-2xl px-4 pt-4">
         <div className="mb-3 flex items-center gap-3">
